@@ -34,7 +34,6 @@ jobs:
                any::googleway
                any::purrr
                any::leaflet
-               any::gepaf
                any::gt
                any::datatable
                any::googledrive
