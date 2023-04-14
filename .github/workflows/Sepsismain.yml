@@ -30,14 +30,16 @@ jobs:
                any::jsonlite
                any::dplyr
                any::tidyr
+               any::tidyverse
                any::ggplot2
+               any::readr
                any::lubridate
                any::forcats
                any::googleway
                any::purrr
                any::leaflet
                any::gt
-               any::datatable
+               any::data.table
                any::googledrive
                
       - name: Render document
