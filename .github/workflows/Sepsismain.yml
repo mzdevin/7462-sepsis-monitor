@@ -35,7 +35,10 @@ jobs:
                any::purrr
                any::leaflet
                any::gepaf
-             
+               any::gt
+               any::datatable
+               any::googledrive
+               
       - name: Render document
         uses: quarto-dev/quarto-actions/render@v2
         env:
