@@ -27,10 +27,12 @@ jobs:
             packages:
                any::knitr
                any::rmarkdown
+               any::jsonlite
                any::dplyr
                any::tidyr
                any::ggplot2
                any::lubridate
+               any::forcats
                any::googleway
                any::purrr
                any::leaflet
