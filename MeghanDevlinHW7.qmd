@@ -1,0 +1,113 @@
+---
+title: "ICU Status Report"
+author: "Meghan Devlin"
+format: html
+editor: visual
+echo: false
+---
+
+```{r, message=FALSE, warning=FALSE}
+
+library(tidyverse)
+library(data.table) ## For the fread function
+library(lubridate)
+library(googledrive)
+library(gt)
+library(ggplot2)
+library(dplyr)
+
+
+source("sepsis_monitor_functions.R")
+filepath <- "/Users/meghandevlin/GIT stuff/devl0010/devl0010/HW 7 Sepsis montior/7462-sepsis-monitor/sepsis.csv"
+
+drive_deauth()
+file_link <- "https://drive.google.com/file/d/1He1biSQErJlEJccLq2TlOw7XtcQ9FE_M/view?usp=share_link"
+
+new_data <- updateData(file_link)
+
+## Include only most recent data
+most_recent_data <- new_data %>%
+  group_by(PatientID) %>%
+  filter(obsTime == max(obsTime))
+
+```
+
+**Report run time:**
+
+```{r}
+report_date <- format(Sys.time(), "%B %d, %Y %H:%M:%S")
+cat("Report generated on:", report_date)
+```
+
+**Current vitals of patients with sepsis:**
+
+```{r}
+##Table listing all patients who currently have sepsis (SepsisLabel = 1) with most recent heart rate (HR), temperature (Temp), and respiratory rate (Resp) using most_recent_data
+
+
+most_recent_data_table <- most_recent_data %>%
+  group_by(PatientID) %>%
+  filter(SepsisLabel == 1) %>%
+  summarize(PatientID, HR, Temp, Resp) %>%
+  gt() %>%
+  cols_label(PatientID = "Patient ID", HR = "Heartrate", Temp = "Temperature", Resp = "Respiratory Rate") %>%
+  tab_header(title = "Vitals of Patients with Sepsis") %>%
+  sub_missing(columns = c("HR", "Temp", "Resp"), missing_text = "--")
+
+most_recent_data_table
+
+
+```
+
+**Heart rate vs stay in ICU for all patients:**
+
+```{r}
+
+new_data %>%
+  filter(SepsisLabel == 1) %>%
+  ggplot(aes(x = ICULOS, y = HR, color = PatientID)) +
+  geom_line() + labs(x="Stay in ICU", y="Heart Rate", color= "Patient ID")
+  
+```
+
+**Temperature vs stay in ICU for all patients:**
+
+```{r}
+new_data %>%
+  filter(SepsisLabel == 1) %>%
+  ggplot(aes(x = ICULOS, y =Temp, color = PatientID)) +
+  geom_line()+ labs(x="Stay in ICU", y="Temperature", color= "Patient ID")
+```
+
+**Respiratory rate vs stay in ICU for all patients:**
+
+```{r}
+new_data %>%
+  filter(SepsisLabel == 1) %>%
+  ggplot(aes(x = ICULOS, y =Resp, color = PatientID)) +
+  geom_line()+ labs(x="Stay in ICU", y="Respiratory Rate", color= "Patient ID")
+
+```
+
+**Change in heart rate, temperature, and respiratory rate between last two measurements for all patients:**
+
+```{r}
+last_two_obs<- new_data %>% 
+  group_by(PatientID) %>%
+  arrange(desc(ICULOS)) %>% 
+  slice(1:2) 
+last_two_obs %>%
+  group_by(PatientID) %>%
+  summarise(
+    heart_rate_change = HR[2]-HR[1],
+    temp_change = Temp[2]-Temp[1],
+    resp_change = Resp[2]-Resp[1])%>%
+  gt()%>%
+  cols_label(PatientID = "Patient ID", heart_rate_change = "Change in Heart Rate", temp_change = "Change in Temp", resp_change = "Change in Resp Rate")%>%
+  tab_header(title = "Change in Heart Rate, Temperature and Respiratory Rate\n Between Last Two Measurments for All Patients") %>%
+  sub_missing(columns = c("heart_rate_change", "temp_change", "resp_change"), missing_text = "--")
+
+
+
+
+```
